@@ -1,3 +1,5 @@
+
+
 import re
 import time
 import signal
@@ -18,7 +20,7 @@ class Log(object):
         results = reDataLogParser.findall(self.logtext)
         if not results: raise NotAMonLogEntry
 
-        try:
+        try: 
             self.timestamp = time.strptime(self.logtext[:19], '%Y-%m-%d %H:%M:%S')
         except ValueError:
             raise NotAMonLogEntry
@@ -45,7 +47,7 @@ class LogEntries(list):
         if _log.timestamp not in self.stamps:
             self.append(_log)
             self.stamps.append(_log.timestamp)
-
+       
             while len(self) > self.maxlen:
                 del self[0]
                 del self.stamps[0]
@@ -75,11 +77,15 @@ def updatestats():
 
 def updatelogs():
     with open('/var/log/ceph/ceph.log', 'r') as logfile:
-        logfile.seek(-2000, 2)
-        for line in logfile.readlines():
-            if logs.add_log(line):
-                print 'added: %s' % logs[-1]
-                print 'logtotal: %s' % len(logs)
+        try:
+            logfile.seek(-400, 2)
+            for line in logfile.readlines():
+                if line: # After log rotation, this will be null
+                    if logs.add_log(line):
+                        print 'added: %s' % logs[-1]
+                        print 'logtotal: %s' % len(logs)
+        except IOError:
+            pass
 
 
 
